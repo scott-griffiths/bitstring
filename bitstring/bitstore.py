@@ -534,8 +534,20 @@ class MutableBitStore(_BitStoreBase):
     def to_tibs(self) -> Tibs:
         return self.tibs.to_tibs()
 
-    def invert(self, index: int | None = None, /) -> None:
+    def invert(self, index: int | Iterable[int] | None = None, /) -> None:
         if index is not None:
+            if isinstance(index, (list, tuple, range)) and index:
+                # Mutibs.invert range-checks positions as it goes, so do it first to
+                # avoid a partial change. Unlike set(), which checks them all up front.
+                try:
+                    lo, hi = min(index), max(index)
+                except TypeError:
+                    pass  # tibs rejects a bad position type before changing anything.
+                else:
+                    length = len(self.tibs)
+                    if lo < -length or hi >= length:
+                        bad = lo if lo < -length else hi
+                        raise IndexError(f"Index of {bad} is out of range for length of {length}")
             self.tibs.invert(index)
         else:
             self.tibs.invert()

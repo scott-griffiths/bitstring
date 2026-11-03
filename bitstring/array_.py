@@ -316,8 +316,10 @@ class Array:
                 value = list(value)
             if len(value) == items_in_slice:
                 itemsize = self.itemsize
-                for s, v in zip(range(start, stop, step), value):
-                    self._data.overwrite(s * itemsize, self._create_element(v))
+                # Create every element before writing any, so a bad value leaves the Array unchanged.
+                elements = [self._create_element(v) for v in value]
+                for s, e in zip(range(start, stop, step), elements):
+                    self._data.overwrite(s * itemsize, e)
             else:
                 raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
@@ -610,6 +612,17 @@ class Array:
                 token_length = dtype2.bitlength
         if token_length is None:
             token_length = self.itemsize
+        if token_length != 0:
+            # A length borrowed from the itemsize hasn't been checked against the format yet.
+            for d in (dtype1, dtype2):
+                if d is not None and d.bitlength is None:
+                    multiplier = dtype_register[d.name].multiplier
+                    try:
+                        if token_length % multiplier != 0:
+                            raise ValueError
+                        Dtype(d.name, token_length // multiplier)
+                    except ValueError:
+                        raise ValueError(f"The '{d.name}' format can't be used in pp() with an itemsize of {token_length} bits.") from None
 
         if token_length == 0:
             # A zero length format means 'don't split into groups', as it does for
@@ -630,12 +643,15 @@ class Array:
             tidy_fmt = "fmt='" + tidy_fmt + "'"
         data = self._data if trailing_bit_length == 0 else self._data[0: -trailing_bit_length]
         len_str = colour.green + str(length) + colour.off
-        stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self._data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, offset_factor, colour)
-        stream.write("]")
+        # Buffered, as for Bits.pp, so that nothing is written if formatting fails part way.
+        output_stream = io.StringIO()
+        output_stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self._data) + 7) // 8} bytes> [\n")
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, output_stream, offset_factor, colour)
+        output_stream.write("]")
         if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self._data[-trailing_bit_length:]))
-        stream.write("\n")
+            output_stream.write(" + trailing_bits = " + str(self._data[-trailing_bit_length:]))
+        output_stream.write("\n")
+        stream.write(output_stream.getvalue())
 
     def equals(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
@@ -1049,7 +1065,7 @@ class Array:
         if isinstance(other, Array):
             # Compare values, as the ordering operators do. The dtypes needn't match.
             return self._apply_op_between_arrays(op, other, is_comparison=True)
-        if isinstance(other, (int, float, str, Bits)):
+        if isinstance(other, (int, float, str, Bits, bytes, bytearray)):
             return self._apply_op_to_all_elements(op, other, is_comparison=True)
         if not isinstance(other, (list, tuple, array.array)):
             # Nothing we can compare element-wise. NotImplemented rather than an exception,
