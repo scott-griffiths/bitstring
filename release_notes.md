@@ -9,6 +9,8 @@ This is a bug fix release, with several minor edge cases fixed.
 
 * Fixed extended slice assignment from an `Array` sharing the same data, when using the
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
+* Fixed `Array.count()` raising `OverflowError` for integers too large to convert
+  to a float. (#371, @umtong)
 * Comparing an `Array` with `bytes` or `bytearray` using `==` or `!=` now compares element-wise,
   as it does for other scalars, instead of always returning `False` or `True`.
 * `Array.pp()` now raises a `ValueError` without writing anything to the stream if the format
