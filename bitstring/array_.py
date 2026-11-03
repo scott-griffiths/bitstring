@@ -101,7 +101,8 @@ class Array:
         self._set_dtype(dtype)
 
         if initializer is not None:
-            self.extend(initializer)
+            # A copy of an Array keeps its trailing bits, which extend() would refuse.
+            self._extend(initializer, copy_trailing_bits=True)
 
         if trailing_bits is not None:
             self._data += BitArray._create_from_bitstype(trailing_bits)
@@ -291,6 +292,11 @@ class Array:
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
                 raise TypeError("Can only assign an iterable to a slice.")
+            if isinstance(value, Array):
+                trailing_bit_length = len(value._data) % value._dtype._bitlength
+                if trailing_bit_length:
+                    raise ValueError(f"Can't assign an Array with {trailing_bit_length} trailing bits to a slice. "
+                                     f"Assign a slice of it such as b[:] to leave them out.")
             if step == 1:
                 itemsize = self.itemsize
                 if self._tibs_dtype is not None and isinstance(value, (list, tuple, range)):
@@ -316,8 +322,10 @@ class Array:
                 value = list(value)
             if len(value) == items_in_slice:
                 itemsize = self.itemsize
-                for s, v in zip(range(start, stop, step), value):
-                    self._data.overwrite(s * itemsize, self._create_element(v))
+                # Create every element before writing any, so a bad value leaves the Array unchanged.
+                elements = [self._create_element(v) for v in value]
+                for s, e in zip(range(start, stop, step), elements):
+                    self._data.overwrite(s * itemsize, e)
             else:
                 raise ValueError(f"Can't assign {len(value)} values to an extended slice of length {items_in_slice}.")
         else:
@@ -414,6 +422,9 @@ class Array:
         self._data += self._create_element(x)
 
     def extend(self, iterable: Array | array.array | Iterable[Any]) -> None:
+        self._extend(iterable, copy_trailing_bits=False)
+
+    def _extend(self, iterable: Array | array.array | Iterable[Any], copy_trailing_bits: bool) -> None:
         itemsize = self.itemsize
         if len(self._data) % itemsize != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self._data)} bits) is not a multiple of the format length ({itemsize} bits).")
@@ -421,6 +432,11 @@ class Array:
             if self._dtype.name != iterable._dtype.name or self._dtype.length != iterable._dtype.length:
                 raise TypeError(
                     f"Cannot extend an Array with format '{self._dtype}' from an Array of format '{iterable._dtype}'.")
+            trailing_bit_length = len(iterable._data) % itemsize
+            if trailing_bit_length and not copy_trailing_bits:
+                raise ValueError(f"Cannot extend from an Array with {trailing_bit_length} trailing bits. "
+                                 f"Extend from a slice such as b[:] to leave them out, or append to the data "
+                                 f"with a.data += b.data to keep them.")
             # No need to iterate over the elements, we can just append the data
             self._data.append(iterable._data)
         elif isinstance(iterable, array.array):
@@ -626,6 +642,17 @@ class Array:
                 token_length = dtype2.bitlength
         if token_length is None:
             token_length = self.itemsize
+        if token_length != 0:
+            # A length borrowed from the itemsize hasn't been checked against the format yet.
+            for d in (dtype1, dtype2):
+                if d is not None and d.bitlength is None:
+                    multiplier = dtype_register[d.name].multiplier
+                    try:
+                        if token_length % multiplier != 0:
+                            raise ValueError
+                        Dtype(d.name, token_length // multiplier)
+                    except ValueError:
+                        raise ValueError(f"The '{d.name}' format can't be used in pp() with an itemsize of {token_length} bits.") from None
 
         if token_length == 0:
             # A zero length format means 'don't split into groups', as it does for
@@ -646,12 +673,15 @@ class Array:
             tidy_fmt = "fmt='" + tidy_fmt + "'"
         data = self._data if trailing_bit_length == 0 else self._data[0: -trailing_bit_length]
         len_str = colour.green + str(length) + colour.off
-        stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self._data) + 7) // 8} bytes> [\n")
-        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, stream, offset_factor, colour)
-        stream.write("]")
+        # Buffered, as for Bits.pp, so that nothing is written if formatting fails part way.
+        output_stream = io.StringIO()
+        output_stream.write(f"<{self.__class__.__name__} {tidy_fmt}, length={len_str}, itemsize={token_length} bits, total data size={(len(self._data) + 7) // 8} bytes> [\n")
+        data._pp(dtype1, dtype2, token_length, width, sep, format_sep, show_offset, output_stream, offset_factor, colour)
+        output_stream.write("]")
         if trailing_bit_length != 0:
-            stream.write(" + trailing_bits = " + str(self._data[-trailing_bit_length:]))
-        stream.write("\n")
+            output_stream.write(" + trailing_bits = " + str(self._data[-trailing_bit_length:]))
+        output_stream.write("\n")
+        stream.write(output_stream.getvalue())
 
     def equals(self, other: Any) -> bool:
         """Return True if format and all Array items are equal."""
@@ -664,17 +694,11 @@ class Array:
                 return False
             return True
         elif isinstance(other, array.array):
-            # Assume we are comparing with an array type
-            if self.trailing_bits:
+            # The typecode has to match the dtype, as for extend(), and then the bits.
+            other_dtype = _array_to_dtype(other)
+            if other_dtype is None or self._dtype.name != other_dtype.name or self.itemsize != other_dtype.bitlength:
                 return False
-            # array's itemsize is in bytes, not bits.
-            if self.itemsize != other.itemsize * 8:
-                return False
-            if len(self) != len(other):
-                return False
-            if self.to_list() != other.tolist():
-                return False
-            return True
+            return self._data == other.tobytes()
         return False
 
     def __iter__(self) -> Iterable[ElementType]:
@@ -1065,7 +1089,7 @@ class Array:
         if isinstance(other, Array):
             # Compare values, as the ordering operators do. The dtypes needn't match.
             return self._apply_op_between_arrays(op, other, is_comparison=True)
-        if isinstance(other, (int, float, str, Bits)):
+        if isinstance(other, (int, float, str, Bits, bytes, bytearray)):
             return self._apply_op_to_all_elements(op, other, is_comparison=True)
         if not isinstance(other, (list, tuple, array.array)):
             # Nothing we can compare element-wise. NotImplemented rather than an exception,

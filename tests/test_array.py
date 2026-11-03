@@ -366,9 +366,14 @@ class TestArrayMethods:
             source = Array(dtype)
             source.data = a.data
 
-        a[::-1] = source
-
-        assert a.to_list() == values[::-1]
+        if trailing_bits:
+            # A source with trailing bits is refused, even when it is the Array itself.
+            with pytest.raises(ValueError, match='trailing bits'):
+                a[::-1] = source
+            assert a.to_list() == values
+        else:
+            a[::-1] = source
+            assert a.to_list() == values[::-1]
         assert a.trailing_bits == Bits(trailing_bits)
 
     def test_equivalence(self):
@@ -392,6 +397,41 @@ class TestArrayMethods:
         assert not a.equals(b)
         b.append(0.0)
         assert a.equals(b)
+
+    def test_equals_array_array_compares_dtype_and_bits(self):
+        native_u16 = 'ule16' if sys.byteorder == 'little' else 'ube16'
+        other_u16 = 'ube16' if sys.byteorder == 'little' else 'ule16'
+        native_f64 = 'fle64' if sys.byteorder == 'little' else 'f64'
+        assert Array(native_u16, [1, 2]).equals(array.array('H', [1, 2]))
+        assert not Array(other_u16, [1, 2]).equals(array.array('H', [1, 2]))
+        assert not Array('u8', [1, 2]).equals(array.array('b', [1, 2]))
+        assert not Array('u16', [1]).equals(array.array('B', [0, 1]))
+        assert not Array('u32', [97]).equals(array.array('w' if sys.version_info >= (3, 13) else 'u', 'a'))
+        assert not Array(native_f64, [-0.0]).equals(array.array('d', [0.0]))
+        assert Array(native_f64, [float('nan')]).equals(array.array('d', [float('nan')]))
+
+    def test_extend_from_array_with_trailing_bits_raises(self):
+        source = Array('u8', [1, 2], trailing_bits='0b101')
+        a = Array('u8', [9])
+        with pytest.raises(ValueError, match='trailing bits'):
+            a.extend(source)
+        assert a.equals(Array('u8', [9]))
+        a.extend(source[:])
+        assert a.equals(Array('u8', [9, 1, 2]))
+        # Constructing from an Array is a copy, so it keeps them.
+        assert Array('u8', source).trailing_bits == '0b101'
+
+    @pytest.mark.parametrize('key', [slice(0, 1), slice(0, 2), slice(None, None, 2)])
+    def test_slice_assignment_from_array_with_trailing_bits_raises(self, key):
+        source = Array('u8', [1, 2], trailing_bits='0b101')
+        a = Array('u8', [9, 9, 9, 9])
+        with pytest.raises(ValueError, match='trailing bits'):
+            a[key] = source
+        assert a.equals(Array('u8', [9, 9, 9, 9]))
+        expected = [9, 9, 9, 9]
+        expected[key] = [1, 2]
+        a[key] = source[:]
+        assert a.to_list() == expected
 
     def test_extend(self):
         a = Array('uint:3', (1, 2, 3))
@@ -788,6 +828,16 @@ class TestArrayMethods:
                                         " 0: c0403f804000\n" \
                                         "]\n"
 
+    @pytest.mark.parametrize("dtype, fmt, sep", [('u5', 'hex', ' '), ('u5', 'oct', ' '), ('u5', 'bytes', ' '),
+                                                  ('bool', 'hex', ' '), ('bool', 'hex', '')])
+    def test_pp_bad_format_raises_without_output(self, dtype, fmt, sep):
+        # Like Bits.pp, the format should be checked before anything is written.
+        a = Array(dtype, [1, 0, 1])
+        s = io.StringIO()
+        with pytest.raises(ValueError):
+            a.pp(fmt, sep=sep, stream=s)
+        assert s.getvalue() == ''
+
     def test_pp_signature_matches_bits(self):
         # The two pp() methods should stay positionally interchangeable.
         import inspect
@@ -1142,6 +1192,12 @@ class TestComparisonOperators:
         assert (a == (1, 0, 3)).tolist() == [True, False, True]
         assert (a == array.array('B', [1, 0, 3])).tolist() == [True, False, True]
 
+    def test_equals_with_bytes_is_elementwise(self):
+        a = Array('bytes2', [b'ab', b'cd'])
+        assert (a == b'ab').tolist() == [True, False]
+        assert (a != b'ab').tolist() == [False, True]
+        assert (a == bytearray(b'ab')).tolist() == [True, False]
+
 
 class TestTruthValue:
 
@@ -1314,6 +1370,15 @@ class TestMisc:
         y = Array('float16', [100, 2.0, 0.0, 4])
         x = x + (y == 0.0)
         assert x.tolist() == [1, 2, 4, 4]
+
+
+@pytest.mark.parametrize("value", [[9, 300], [9, 'x']])
+def test_failed_extended_slice_assignment_leaves_array_unchanged(value):
+    # As for step-1 slices, a bad value shouldn't leave earlier elements written.
+    a = Array('u8', [1, 2, 3, 4])
+    with pytest.raises((ValueError, TypeError)):
+        a[::2] = value
+    assert a.to_list() == [1, 2, 3, 4]
 
 
 def test_delete_out_of_range_index_has_message():

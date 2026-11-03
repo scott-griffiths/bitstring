@@ -3,13 +3,33 @@
 
 ## Unreleased
 
-* Fixed `Array.from_file(..., n=...)` reporting premature EOF after a short read
-  from a binary stream that still has more data.
+This is a bug fix release, with several minor edge cases fixed.
+
+#### Fixes
 
 * Fixed extended slice assignment from an `Array` sharing the same data, when using the
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 * Fixed `Array.count()` raising `OverflowError` for integers too large to convert
   to a float. (#371, @umtong)
+* `Array.equals()` with an `array.array` now requires a matching dtype and compares
+  the bits, as it does for another `Array`. (#372, @youdie006)
+* Comparing an `Array` with `bytes` or `bytearray` using `==` or `!=` now compares element-wise,
+  as it does for other scalars, instead of always returning `False` or `True`.
+* `Array.pp()` now raises a `ValueError` without writing anything to the stream if the format
+  can't be used with the item size. Previously the header was written first, and some
+  formats such as `hex` with `sep=''` on a 1-bit dtype raised a `ZeroDivisionError`.
+* A failed extended slice assignment to an `Array`, such as `a[::2] = [9, 300]` for a `u8` Array,
+  now leaves the `Array` unchanged rather than writing the values before the bad one.
+* `BitArray.invert()` with an out-of-range position now raises `IndexError` without inverting
+  any bits, as `BitArray.set()` already did.
+* `Array.extend()` and slice assignment now raise `ValueError` if the source is an `Array`
+  with trailing bits. Previously `extend()` appended them, leaving the extended `Array` with
+  trailing bits in its data, and slice assignment silently left them out. Use a slice such
+  as `b[:]` to leave them out explicitly. Creating an `Array` from another still copies them.
+* Fixed `BitArray.byteswap()` rejecting valid iterable byte-size patterns such as
+  NumPy integer arrays.
+* Fixed `Array.from_file(..., n=...)` reporting premature EOF after a short read
+  from a binary stream that still has more data.  
 
 ## October 2026: version 5.0.0 released
 

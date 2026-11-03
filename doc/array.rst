@@ -111,6 +111,8 @@ Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if 
 Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it is not clear how these should behave in this case.
 You can however still use :meth:`~Array.insert` which will always leave the :attr:`Array.trailing_bits` unchanged.
 
+Trailing bits are never dropped silently when another ``Array`` is used as a source of values: :meth:`~Array.extend` and slice assignment raise a ``ValueError`` if the source ``Array`` has trailing bits.
+
 The :attr:`Array.dtype` string can be a type code such as ``'>H'`` or ``'<d'`` but it can also be a string defining any format which has a fixed-length in bits, for example ``'i12'``, ``'bfloat'``, ``'bytes5'`` or ``'bool'``.
 
 Note that the typecodes must include an endianness character to give the byte ordering.
@@ -242,7 +244,8 @@ Methods
 
     Extend the Array by constructing new elements from the values in a list or other iterable.
 
-    The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same. ::
+    The `iterable` can be another ``Array`` or an ``array.array``, but only if the dtype is the same.
+    A ``ValueError`` is raised if `iterable` is an ``Array`` with :attr:`~Array.trailing_bits`. To leave them out use a slice such as ``b[:]``, or to keep them append to the data directly with ``a.data += b.data``. ::
 
         >>> a = Array('i5', [-5, 0, 10])
         >>> a.extend([3, 2, 1])
@@ -645,6 +648,8 @@ Python language operators
     ``a[i] = x``
 
     ``a[start:end:step] = x``
+
+    When assigning to a slice, a ``ValueError`` is raised if `x` is an ``Array`` with :attr:`~Array.trailing_bits`, rather than silently leaving them out. Assign a slice such as ``x[:]`` to leave them out explicitly.
 
 .. method:: Array.__delitem__(self, key: int | slice) -> None
 
