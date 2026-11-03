@@ -839,3 +839,11 @@ def test_slice_bug():
     a = BitArray('0xffff')
     a[0:8] = '0x1234'
     assert a == '0x1234ff'
+
+
+def test_failed_invert_leaves_bitarray_unchanged():
+    # set() validates every position first; invert() should too.
+    a = BitArray('0b0000')
+    with pytest.raises(IndexError):
+        a.invert([0, 1, 99])
+    assert a == '0b0000'
