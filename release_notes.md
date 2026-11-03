@@ -22,6 +22,10 @@ This is a bug fix release, with several minor edge cases fixed.
   now leaves the `Array` unchanged rather than writing the values before the bad one.
 * `BitArray.invert()` with an out-of-range position now raises `IndexError` without inverting
   any bits, as `BitArray.set()` already did.
+* `Array.extend()` and slice assignment now raise `ValueError` if the source is an `Array`
+  with trailing bits. Previously `extend()` appended them, leaving the extended `Array` with
+  trailing bits in its data, and slice assignment silently left them out. Use a slice such
+  as `b[:]` to leave them out explicitly. Creating an `Array` from another still copies them.
 
 ## October 2026: version 5.0.0 released
 

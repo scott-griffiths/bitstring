@@ -101,7 +101,8 @@ class Array:
         self._set_dtype(dtype)
 
         if initializer is not None:
-            self.extend(initializer)
+            # A copy of an Array keeps its trailing bits, which extend() would refuse.
+            self._extend(initializer, copy_trailing_bits=True)
 
         if trailing_bits is not None:
             self._data += BitArray._create_from_bitstype(trailing_bits)
@@ -291,6 +292,11 @@ class Array:
             start, stop, step = key.indices(len(self))
             if not isinstance(value, Iterable):
                 raise TypeError("Can only assign an iterable to a slice.")
+            if isinstance(value, Array):
+                trailing_bit_length = len(value._data) % value._dtype._bitlength
+                if trailing_bit_length:
+                    raise ValueError(f"Can't assign an Array with {trailing_bit_length} trailing bits to a slice. "
+                                     f"Assign a slice of it such as b[:] to leave them out.")
             if step == 1:
                 itemsize = self.itemsize
                 if self._tibs_dtype is not None and isinstance(value, (list, tuple, range)):
@@ -416,6 +422,9 @@ class Array:
         self._data += self._create_element(x)
 
     def extend(self, iterable: Array | array.array | Iterable[Any]) -> None:
+        self._extend(iterable, copy_trailing_bits=False)
+
+    def _extend(self, iterable: Array | array.array | Iterable[Any], copy_trailing_bits: bool) -> None:
         itemsize = self.itemsize
         if len(self._data) % itemsize != 0:
             raise ValueError(f"Cannot extend Array as its data length ({len(self._data)} bits) is not a multiple of the format length ({itemsize} bits).")
@@ -423,6 +432,11 @@ class Array:
             if self._dtype.name != iterable._dtype.name or self._dtype.length != iterable._dtype.length:
                 raise TypeError(
                     f"Cannot extend an Array with format '{self._dtype}' from an Array of format '{iterable._dtype}'.")
+            trailing_bit_length = len(iterable._data) % itemsize
+            if trailing_bit_length and not copy_trailing_bits:
+                raise ValueError(f"Cannot extend from an Array with {trailing_bit_length} trailing bits. "
+                                 f"Extend from a slice such as b[:] to leave them out, or append to the data "
+                                 f"with a.data += b.data to keep them.")
             # No need to iterate over the elements, we can just append the data
             self._data.append(iterable._data)
         elif isinstance(iterable, array.array):

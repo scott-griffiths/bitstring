@@ -340,9 +340,14 @@ class TestArrayMethods:
             source = Array(dtype)
             source.data = a.data
 
-        a[::-1] = source
-
-        assert a.to_list() == values[::-1]
+        if trailing_bits:
+            # A source with trailing bits is refused, even when it is the Array itself.
+            with pytest.raises(ValueError, match='trailing bits'):
+                a[::-1] = source
+            assert a.to_list() == values
+        else:
+            a[::-1] = source
+            assert a.to_list() == values[::-1]
         assert a.trailing_bits == Bits(trailing_bits)
 
     def test_equivalence(self):
@@ -378,6 +383,29 @@ class TestArrayMethods:
         assert not Array('u32', [97]).equals(array.array('w' if sys.version_info >= (3, 13) else 'u', 'a'))
         assert not Array(native_f64, [-0.0]).equals(array.array('d', [0.0]))
         assert Array(native_f64, [float('nan')]).equals(array.array('d', [float('nan')]))
+
+    def test_extend_from_array_with_trailing_bits_raises(self):
+        source = Array('u8', [1, 2], trailing_bits='0b101')
+        a = Array('u8', [9])
+        with pytest.raises(ValueError, match='trailing bits'):
+            a.extend(source)
+        assert a.equals(Array('u8', [9]))
+        a.extend(source[:])
+        assert a.equals(Array('u8', [9, 1, 2]))
+        # Constructing from an Array is a copy, so it keeps them.
+        assert Array('u8', source).trailing_bits == '0b101'
+
+    @pytest.mark.parametrize('key', [slice(0, 1), slice(0, 2), slice(None, None, 2)])
+    def test_slice_assignment_from_array_with_trailing_bits_raises(self, key):
+        source = Array('u8', [1, 2], trailing_bits='0b101')
+        a = Array('u8', [9, 9, 9, 9])
+        with pytest.raises(ValueError, match='trailing bits'):
+            a[key] = source
+        assert a.equals(Array('u8', [9, 9, 9, 9]))
+        expected = [9, 9, 9, 9]
+        expected[key] = [1, 2]
+        a[key] = source[:]
+        assert a.to_list() == expected
 
     def test_extend(self):
         a = Array('uint:3', (1, 2, 3))
