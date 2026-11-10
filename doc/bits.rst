@@ -113,6 +113,8 @@ Methods
         >>> [chunk.hex for chunk in s.cut(8, count=1)]
         ['12']
 
+    For a :class:`BitArray` the slices are copies of the bits as they were when iteration started, so later changes to it don't affect them. The same is true of :meth:`~Bits.split`.
+
 
 .. method:: Bits.endswith(suffix: BitsType, start: int | None = None, end: int | None = None) -> bool
 

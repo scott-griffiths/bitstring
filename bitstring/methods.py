@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import bitstring
 from bitstring.bits import Bits
-from bitstring.utils import tokenparser
+from bitstring.utils import tokenparser, joined_fmt
 from bitstring.helpers import validated_count
 import bitstring.bitstore_helpers as helpers
 
@@ -90,8 +90,13 @@ def pack(fmt: str | bitstring.Dtype | list[str | bitstring.Dtype], *values, **kw
     >>> u = pack('u:8=a, u:8=b, u:55=a', a=6, b=44)
 
     """
-    if type(fmt) is str and not kwargs:
-        prepared = _prepared_pack_fmt(fmt)
+    fast_fmt = fmt
+    if type(fmt) is list and not kwargs:
+        # A list of plain strings means the same as them joined. Only the fast path
+        # uses the joined form, so anything it can't do is reported from the list.
+        fast_fmt = joined_fmt(fmt)
+    if type(fast_fmt) is str and not kwargs:
+        prepared = _prepared_pack_fmt(fast_fmt)
         if prepared is not None:
             dtype_tuple, value_count = prepared
             if len(values) == value_count:

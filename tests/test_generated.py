@@ -1304,3 +1304,122 @@ def test_failed_inplace_array_arithmetic_leaves_the_array_and_its_trailing_bits_
         a += 100
     assert a.to_list() == [1, 200]
     assert a.trailing_bits == "0b101"
+
+
+# An Array is packed in one go from a list, tuple or range. Other iterables used to be
+# packed an item at a time, so they're listed first. The results and errors must match.
+
+@pytest.mark.parametrize("dtype", ["u8", "f32", "hex8", "bits8", "ule16"])
+def test_array_from_any_iterable_matches_a_list(dtype: str) -> None:
+    values = [1, 2, 3, 250]
+    if dtype == "hex8":
+        values = ["01", "02", "fa"]
+    elif dtype == "bits8":
+        values = [bitstring.Bits("0x01"), bitstring.Bits("0xfa")]
+    expected = bitstring.Array(dtype, list(values))
+    for make in (lambda: iter(values), lambda: (v for v in values), lambda: dict.fromkeys(values).keys()):
+        assert bitstring.Array(dtype, make()).equals(expected)
+        a = bitstring.Array(dtype)
+        a.extend(make())
+        assert a.equals(expected)
+        b = bitstring.Array(dtype, values[:1])
+        b[0:1] = make()
+        assert b.equals(expected)
+        c = bitstring.Array(dtype, values)
+        c[1:1] = make()
+        assert c.to_list() == values[:1] + values + values[1:]
+
+
+def test_array_extend_from_an_iterator_with_a_bad_value_behaves_as_for_a_list() -> None:
+    a = bitstring.Array("u8", [1])
+    with pytest.raises(ValueError, match="Value 999 does not fit in 8 bits"):
+        a.extend(iter([7, 999, 8]))
+    b = bitstring.Array("u8", [1])
+    with pytest.raises(ValueError, match="Value 999 does not fit in 8 bits"):
+        b.extend([7, 999, 8])
+    assert a.equals(b)
+    c = bitstring.Array("u8", [1, 2])
+    with pytest.raises(ValueError, match="Value 999 does not fit in 8 bits"):
+        c[0:1] = (v for v in [7, 999])
+    assert c.to_list() == [1, 2]
+    with pytest.raises(TypeError):
+        bitstring.Array("u8", [1]).extend("abc")
+
+
+# A 'bits' Array has no bulk read in the core, so its items are cut up with chunks().
+
+def test_bits_array_items_are_immutable_copies_whatever_way_they_are_read() -> None:
+    a = bitstring.Array("bits5", ["0b00001", "0b00010", "0b11111"], trailing_bits="0b101")
+    expected = [bitstring.Bits("0b00001"), bitstring.Bits("0b00010"), bitstring.Bits("0b11111")]
+    for items in (a.to_list(), list(a), [a[i] for i in range(3)]):
+        assert items == expected
+        assert all(type(x) is bitstring.Bits for x in items)
+    items = a.to_list()
+    a.data.invert()
+    assert items == expected
+    assert bitstring.Array("bits5").to_list() == []
+    assert list(bitstring.Array("bits5", trailing_bits="0b1")) == []
+
+
+# A list of format strings is joined so that it can use the same single-call path as one
+# string. Anything that can't be joined that way has to behave as it did.
+
+def test_pack_and_unpack_with_a_list_of_strings_match_a_single_string() -> None:
+    values = (1, 2, 3, "ff")
+    s = bitstring.pack("u8, u8, u16, hex8", *values)
+    assert bitstring.pack(["u8", "u8", "u16", "hex8"], *values) == s
+    assert bitstring.pack(["u8, u8", "u16, hex8"], *values) == s
+    assert s.unpack(["u8", "u8", "u16", "hex8"]) == list(values)
+    assert s.unpack(["u8, u8", "u16, hex8"]) == list(values)
+    assert s.unpack(["u8", 8, bitstring.Dtype("u16"), "hex"]) == [1, bitstring.Bits("0x02"), 3, "ff"]
+    assert s.unpack(["u8", "pad8", "u16", "hex"]) == [1, 3, "ff"]
+    assert bitstring.Reader(s).read_list(["u8", "u8", "u16", "hex8"]) == list(values)
+    assert s.unpack([]) == [] and s.unpack([""]) == []
+    assert bitstring.pack([]) == bitstring.Bits() and bitstring.pack([""]) == bitstring.Bits()
+
+
+def test_a_list_of_format_strings_isnt_joined_across_brackets() -> None:
+    # Joined these would be the valid '2*(u8,u8)', but each item is unbalanced on its own.
+    with pytest.raises(ValueError, match="Unbalanced parenthesis"):
+        _ = bitstring.pack(["2*(u8", "u8)"], 1, 2, 3, 4)
+    with pytest.raises(ValueError, match="Unbalanced parenthesis"):
+        _ = bitstring.Bits("0x01020304").unpack(["2*(u8", "u8)"])
+    assert bitstring.pack(["2*(u8)", "u8"], 1, 2, 3) == "0x010203"
+    with pytest.raises(ValueError, match="2 values are needed"):
+        _ = bitstring.pack(["u8", "u8"], 1)
+    with pytest.raises(ValueError, match="does not fit"):
+        _ = bitstring.pack(["u8", "u8"], 1, 256)
+
+
+# cut() and split() on a BitArray make their pieces in one core call, as for Bits. The
+# pieces are made when iteration starts, and are mutable copies.
+
+def test_bitarray_cut_and_split_give_mutable_copies_from_when_iteration_starts() -> None:
+    a = bitstring.BitArray("0x0102030405")
+    for pieces in (a.cut(8), a.split("0b1"), a.cut(8, 4, 30, 2), a.split("0x03", 4, 36, 2, bytealigned=True)):
+        snapshot = bitstring.Bits(a)
+        out = []
+        for i, piece in enumerate(pieces):
+            assert type(piece) is bitstring.BitArray
+            out.append(bitstring.Bits(piece))
+            piece.append("0b1")
+            if i == 0:
+                a.invert()
+        a.invert()
+        assert a == snapshot
+        assert len(out) >= 2
+    assert [x.hex for x in a.cut(16)] == ["0102", "0304", "05"]
+    assert [x.bin for x in bitstring.BitArray("0b0110110").split("0b11")] == ["0", "110", "110"]
+    assert list(bitstring.BitArray().cut(3)) == []
+    assert list(bitstring.BitArray().split("0b1")) == [bitstring.BitArray()]
+
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+def test_startswith_and_endswith_without_a_range(cls) -> None:
+    b = cls("0xf0a5")
+    assert b.startswith("0xf") and b.startswith(b) and b.startswith("") and b.startswith(bitstring.BitArray("0xf0"))
+    assert not b.startswith("0xa") and not b.startswith("0xf0a50")
+    assert b.endswith("0x5") and b.endswith(b) and b.endswith("") and b.endswith([0, 1, 0, 1])
+    assert not b.endswith("0xa") and not b.endswith("0x0f0a5")
+    assert cls().startswith("") and cls().endswith("") and not cls().startswith("0b1") and not cls().endswith("0b1")
+    assert b.startswith("0xa", 8) and b.endswith("0x0", None, 8) and not b.startswith("0xf0", 0, 4)

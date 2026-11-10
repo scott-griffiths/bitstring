@@ -213,6 +213,21 @@ def tokenparser(fmt: str, keys: tuple[str, ...] = ()) -> \
     return stretchy_token, ret_vals
 
 
+def joined_fmt(fmt: list) -> str | None:
+    """A list of format strings as the one string that means the same, or None.
+
+    None unless every item is a str, and also if there's a bracket anywhere, as joining
+    could pair up brackets that are unbalanced within their own items.
+    """
+    for f in fmt:
+        if type(f) is not str:
+            return None
+    s = ','.join(fmt)
+    if '(' in s or not s:
+        return None
+    return s
+
+
 # A repeat count and the bracket it applies to, as in '3*('. Anchored to the end so it
 # can be matched against just the text up to a particular bracket.
 BRACKET_RE = re.compile(r'(?P<factor>\d+)\*\($')

@@ -56,6 +56,19 @@ This is a bug fix release, with several minor edge cases fixed.
   a `ValueError`. The text was being joined on to the nearest token, so that example was read
   as `'u8, u83'`.
 
+#### Performance
+
+* Creating, extending or slice-assigning an `Array` from an iterable that isn't a list, tuple
+  or range, such as a generator, is now packed in one go as those are - around 40 to 90 times
+  faster. The iterable is listed first, so it is held in memory while it's packed.
+* `to_list()` and iteration for an `Array` with a `bits` dtype are around 6 times faster.
+* `pack()`, `unpack()` and `Reader.read_list()` given a list of format strings are now as
+  fast as for the same tokens in a single string, around 5 times faster for simple formats.
+* `cut()` and `split()` on a `BitArray` are around twice as fast. Their pieces are now all
+  made when iteration starts, so changing the `BitArray` part way through no longer affects
+  the pieces still to come.
+* `startswith()` and `endswith()` without a `start` or `end` are around 5 times faster.
+
 ## October 2026: version 5.0.0 released
 
 A major release which completes the move to using the `tibs` Rust library as the core.

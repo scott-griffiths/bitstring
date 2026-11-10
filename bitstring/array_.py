@@ -299,10 +299,12 @@ class Array:
                                      f"Assign a slice of it such as b[:] to leave them out.")
             if step == 1:
                 itemsize = self.itemsize
-                if self._tibs_dtype is not None and isinstance(value, (list, tuple, range)):
-                    # Bulk pack, far quicker than an item at a time. Only for types that
-                    # can be iterated twice, as a failure falls back to the loop below
-                    # so that a bad value raises exactly the error it always did.
+                if self._tibs_dtype is not None:
+                    # Bulk pack, far quicker than an item at a time. A failure falls back
+                    # to the loop below so that a bad value raises exactly the error it
+                    # always did, which needs something that can be iterated twice.
+                    if not isinstance(value, (list, tuple, range)):
+                        value = list(value)
                     try:
                         packed = bitstore.MutableBitStore.from_values(self._tibs_dtype, value)
                     except Exception:
@@ -409,8 +411,20 @@ class Array:
             # Bulk unpack, which is far quicker than reading an item at a time. Any
             # trailing bits are excluded, as tibs won't unpack a partial final item.
             return self._data._bitstore.to_values(self._tibs_dtype, len(self._data) // itemsize * itemsize)
+        if self._dtype._name == 'bits':
+            return self._bits_items()
         return [self._dtype._read_fn(self._data, start=start)
                 for start in range(0, len(self._data) - itemsize + 1, itemsize)]
+
+    def _bits_items(self) -> list[Bits]:
+        """Every item of a 'bits' Array, cut up in one core call rather than read one by one."""
+        itemsize = self.itemsize
+        items = []
+        for store in self._data._bitstore.const_chunks(itemsize, len(self._data) // itemsize * itemsize):
+            b = object.__new__(Bits)
+            b._bitstore = store
+            items.append(b)
+        return items
 
     def tolist(self) -> list[ElementType]:
         """Deprecated compatibility alias for :meth:`to_list`."""
@@ -451,11 +465,14 @@ class Array:
         else:
             if isinstance(iterable, str):
                 raise TypeError("Can't extend an Array with a str.")
-            if self._tibs_dtype is not None and isinstance(iterable, (list, tuple, range)):
-                # Bulk pack, which is far quicker than packing an item at a time. Only
-                # for types that can be iterated twice, as a failure has to fall back to
-                # the loop below - that way a bad value raises exactly the error it
-                # always did, and leaves the same partially extended Array behind.
+            if self._tibs_dtype is not None:
+                # Bulk pack, which is far quicker than packing an item at a time. A
+                # failure has to fall back to the loop below - that way a bad value
+                # raises exactly the error it always did, and leaves the same partially
+                # extended Array behind - so anything that can't be iterated twice,
+                # such as a generator, is listed first.
+                if not isinstance(iterable, (list, tuple, range)):
+                    iterable = list(iterable)
                 try:
                     packed = bitstore.MutableBitStore.from_values(self._tibs_dtype, iterable)
                 except Exception:
@@ -690,6 +707,9 @@ class Array:
         if self._tibs_dtype is not None:
             yield from self._data._bitstore.to_values_iter(
                 self._tibs_dtype, len(self._data) // itemsize * itemsize)
+            return
+        if self._dtype._name == 'bits':
+            yield from self._bits_items()
             return
         start = 0
         for _ in range(len(self)):

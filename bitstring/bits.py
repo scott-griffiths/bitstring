@@ -1304,6 +1304,9 @@ class Bits:
 
     def _readlist(self, fmt: str | Dtype | list[str | int | Dtype], pos: int, **kwargs) \
             -> tuple[list[int | float | str | Bits | bool | bytes | None], int]:
+        if type(fmt) is list and not kwargs:
+            # A list of plain strings means the same as them joined, which is cached.
+            fmt = utils.joined_fmt(fmt) or fmt
         if type(fmt) is str and not kwargs:
             # Much the most common form, and the parsing is worth doing only once.
             dtypes, dtype_tuple, total_bits = _prepared_fmt(fmt)
@@ -1507,27 +1510,16 @@ class Bits:
         return self._cut(bits, start_, end_, count)
 
     def _cut(self, bits: int, start_: int, end_: int, count: int | None) -> Iterator[Bits]:
-        if isinstance(self._bitstore, ConstBitStore):
-            cls = self.__class__
-            store = self._bitstore
-            if start_ != 0 or end_ != len(self):
-                store = store.getslice(start_, end_)
-            for chunk_store in store.chunks(bits, count):
-                chunk = object.__new__(cls)
-                chunk._bitstore = chunk_store
-                yield chunk
-            return
-        c = 0
-        while count is None or c < count:
-            c += 1
-            nextchunk = self._slice(start_, min(start_ + bits, end_))
-            if len(nextchunk) == 0:
-                return
-            yield nextchunk
-            if len(nextchunk) != bits:
-                return
-            start_ += bits
-        return
+        # One core call makes the chunks, lazily for an immutable store. A mutable one
+        # makes them all when iteration starts, so they're a snapshot of the bits then.
+        cls = self.__class__
+        store = self._bitstore
+        if start_ != 0 or end_ != len(self):
+            store = store.getslice(start_, end_)
+        for chunk_store in store.chunks(bits, count):
+            chunk = object.__new__(cls)
+            chunk._bitstore = chunk_store
+            yield chunk
 
     def split(self, delimiter: BitsType, start: int | None = None, end: int | None = None,
               count: int | None = None, *, bytealigned: bool = False) -> Iterable[Bits]:
@@ -1564,37 +1556,14 @@ class Bits:
                bytealigned: bool) -> Iterator[Bits]:
         if count == 0:
             return
-        if isinstance(self._bitstore, ConstBitStore):
-            # One find_all call locates every delimiter and one split_at call makes
-            # every piece, which beats a Python loop of find() calls by a lot.
-            cls = self.__class__
-            for piece in self._bitstore.split_on(delimiter._bitstore, start, end, count, bytealigned):
-                b = object.__new__(cls)
-                b._bitstore = piece
-                yield b
-            return
-        f = functools.partial(self._find, bs=delimiter, bytealigned=bytealigned)
-        found = f(start=start, end=end)
-        if found is None:
-            # Initial bits are the whole bitstring being searched
-            yield self._slice(start, end)
-            return
-        # yield the bytes before the first occurrence of the delimiter, even if empty
-        yield self._slice(start, found)
-        startpos = pos = found
-        c = 1
-        while count is None or c < count:
-            pos += len(delimiter)
-            found = f(start=pos, end=end)
-            if found is None:
-                # No more occurrences, so return the rest of the bitstring
-                yield self._slice(startpos, end)
-                return
-            c += 1
-            yield self._slice(startpos, found)
-            startpos = pos = found
-        # Have generated count bitstrings, so time to quit.
-        return
+        # One find_all call locates every delimiter and one split_at call makes
+        # every piece, which beats a Python loop of find() calls by a lot. The pieces
+        # are all made when iteration starts, so for a BitArray they're a snapshot.
+        cls = self.__class__
+        for piece in self._bitstore.split_on(delimiter._bitstore, start, end, count, bytealigned):
+            b = object.__new__(cls)
+            b._bitstore = piece
+            yield b
 
     def join(self, sequence: Iterable[Any]) -> Self:
         """Return concatenation of bitstrings joined by self.
@@ -1675,6 +1644,8 @@ class Bits:
 
         """
         prefix = self._create_from_bitstype(prefix)
+        if start is None and end is None:
+            return self._bitstore.starts_with(prefix._bitstore)
         start, end = self._validate_slice(start, end)
         return self._slice(start, start + len(prefix)) == prefix if end >= start + len(prefix) else False
 
@@ -1690,6 +1661,8 @@ class Bits:
 
         """
         suffix = self._create_from_bitstype(suffix)
+        if start is None and end is None:
+            return self._bitstore.ends_with(suffix._bitstore)
         start, end = self._validate_slice(start, end)
         return self._slice(end - len(suffix), end) == suffix if start + len(suffix) <= end else False
 
