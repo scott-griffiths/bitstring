@@ -724,7 +724,11 @@ class Array:
         """
         if dtype.return_type is not int:
             return None
-        return [int(v) if type(v) is float else v for v in values]
+        try:
+            return [int(v) if type(v) is float else v for v in values]
+        except (ValueError, OverflowError):
+            # A nan or an infinity. The per-element loop reports which item it was.
+            return None
 
     def _bulk_pack_into(self, new_array: Array, values: Iterable[Any]) -> bool:
         """Pack values into an empty new_array in one go, returning False if it can't.
@@ -784,7 +788,7 @@ class Array:
                 if truncate and type(result) is float:
                     result = int(result)
                 new_data.append(new_array._create_element(result))
-            except (ValueError, ZeroDivisionError) as e:
+            except (ValueError, ZeroDivisionError, OverflowError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i
@@ -799,8 +803,20 @@ class Array:
         """Apply op with value to each element of the Array in place."""
         # Not really in place, as the data is replaced, but this way it gets the bulk path
         # and reports errors exactly as the out-of-place version does.
+        trailing_bits = self._trailing_bits_or_none()
         self._data = self._apply_op_to_all_elements(op, value)._data
+        if trailing_bits is not None:
+            self._data += trailing_bits
         return self
+
+    def _trailing_bits_or_none(self) -> BitArray | None:
+        """A copy of any trailing bits, for the in-place operators to put back.
+
+        They replace the data with newly packed items, which would otherwise drop the
+        trailing bits silently. The bitwise in-place operators keep them too.
+        """
+        trailing_bit_length = len(self._data) % self.itemsize
+        return self._data[-trailing_bit_length:] if trailing_bit_length else None
 
     def _apply_bitwise_op_to_all_elements(self, op, value: BitsType) -> Array:
         """Apply op with value to each element of the Array as an unsigned integer and return a new Array"""
@@ -868,7 +884,7 @@ class Array:
                 if truncate and type(result) is float:
                     result = int(result)
                 new_data.append(new_array._create_element(result))
-            except (ValueError, ZeroDivisionError) as e:
+            except (ValueError, ZeroDivisionError, OverflowError) as e:
                 if failures == 0:
                     msg = str(e)
                     index = i
@@ -881,7 +897,10 @@ class Array:
 
     def _apply_op_between_arrays_inplace(self, op, other: Array) -> Array:
         """Apply op between Arrays and update self in place."""
+        trailing_bits = self._trailing_bits_or_none()
         result = self._apply_op_between_arrays(op, other)
+        if trailing_bits is not None:
+            result._data += trailing_bits
         # The result's dtype may have been promoted, and the cached tibs dtype has to
         # follow it or the new data gets read in the old format.
         self._dtype = result._dtype

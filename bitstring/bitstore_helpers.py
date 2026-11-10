@@ -123,7 +123,9 @@ literal_bit_funcs: dict[str, Callable[..., ConstBitStore]] = {
 
 def bitstore_from_token(name: str, token_length: int | None, value: str | None) -> ConstBitStore:
     if name in literal_bit_funcs:
-        return literal_bit_funcs[name](value)
+        # The prefix goes back on, as the core strips one itself. Passing only the
+        # value let a second prefix through, so that '0x0x55' was accepted.
+        return literal_bit_funcs[name](name + value)
     try:
         d = bitstring.dtypes.Dtype(name, token_length)
     except ValueError as e:

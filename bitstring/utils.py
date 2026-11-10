@@ -233,6 +233,12 @@ def expand_brackets(s: str) -> str:
             p += 1
         if count != 0:
             raise ValueError(f"Unbalanced parenthesis in '{s}'.")
+        # A bracket group has to be a whole item. Anything written straight up against
+        # it would otherwise be joined onto its first or last token: '2*(u8)3' gave 'u8,u83'.
+        if p + 1 < len(s) and s[p + 1] not in ',)':
+            raise ValueError(f"Expected a ',' after the closing parenthesis in '{s}'.")
+        if start != 0 and s[start - 1] not in '*,(':
+            raise ValueError(f"Expected a ',' or a repeat count before the opening parenthesis in '{s}'.")
         if start == 0 or s[start - 1] != '*':
             s = s[0:start] + s[start + 1:p] + s[p + 1:]
         else:

@@ -110,6 +110,7 @@ Typically :attr:`Array.trailing_bits` will be an empty :class:`BitArray` but if 
 
 Some methods, such as :meth:`~Array.append` and :meth:`~Array.extend` will raise an exception if used when :attr:`Array.trailing_bits` is not empty, as it is not clear how these should behave in this case.
 You can however still use :meth:`~Array.insert` which will always leave the :attr:`Array.trailing_bits` unchanged.
+The in-place operators such as ``a += 1`` and ``a &= '0x0f'`` change the items and also leave the :attr:`Array.trailing_bits` unchanged.
 
 Trailing bits are never dropped silently when another ``Array`` is used as a source of values: :meth:`~Array.extend` and slice assignment raise a ``ValueError`` if the source ``Array`` has trailing bits.
 

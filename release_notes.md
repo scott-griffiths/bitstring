@@ -26,6 +26,35 @@ This is a bug fix release, with several minor edge cases fixed.
   with trailing bits. Previously `extend()` appended them, leaving the extended `Array` with
   trailing bits in its data, and slice assignment silently left them out. Use a slice such
   as `b[:]` to leave them out explicitly. Creating an `Array` from another still copies them.
+* The in-place arithmetic operators on an `Array`, such as `a += 1` and `a *= b`, now keep
+  any trailing bits instead of silently dropping them, as the bitwise in-place operators
+  already did.
+* A length given as part of an initialiser keyword is now enforced for the `hex`, `bin`,
+  `oct` and `bytes` dtypes. Previously `Bits(hex8='f')` returned four bits and
+  `Bits(bytes2=b'abc')` returned 24. They now raise a `ValueError`, as `Bits('hex8=f')` does.
+* A doubled literal prefix in a string, such as `Bits('0x0x55')` or `Bits('u8=1, 0b0b11')`,
+  now raises a `ValueError` like every other misplaced prefix. It was being accepted.
+* Arithmetic on an integer `Array` that gives an infinity or a NaN, such as
+  `Array('u8', [1]) * float('inf')`, now raises the same `ValueError` as other failed
+  operations, saying which item failed. Previously an `OverflowError` or an unexplained
+  `ValueError` came out. The same goes for an operand too large to convert to a float.
+* Assigning to the `ube` or `ibe` property of a `BitArray` that isn't a whole number of bytes
+  long now raises a `ValueError`, as `ule` and `ile` do. It used to succeed, leaving a value
+  that the same property then couldn't read.
+* `pp()` now raises a `ValueError` for the `pad` dtype, which has no value to show. It printed
+  `None` for each group, and raised a `ZeroDivisionError` with `sep=''`. Using `bits0` now
+  gives an error message rather than an empty `ValueError`.
+* Assigning to a `BitArray` with an index that isn't an integer or a slice now raises a
+  `TypeError`, as getting and deleting do, rather than an `AttributeError`.
+* A `pad` token with no length now raises a `ValueError` saying one is needed, rather than
+  a `TypeError` about `NoneType`.
+* The `hex`, `bin` and `oct` initialisers now raise a `ValueError` for a bytes-like value.
+  Previously empty bytes gave an empty bitstring and anything else a confusing `TypeError`.
+* `Dtype()` now raises a `TypeError` if given something that isn't a string or a `Dtype`,
+  rather than an `AttributeError`.
+* A format string with text directly against a bracket group, such as `'2*(u8)3'`, now raises
+  a `ValueError`. The text was being joined on to the nearest token, so that example was read
+  as `'u8, u83'`.
 
 ## October 2026: version 5.0.0 released
 

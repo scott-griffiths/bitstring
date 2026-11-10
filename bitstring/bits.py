@@ -254,10 +254,15 @@ class Bits:
                     f"initialiser keyword. Use '{self.__class__.__name__}(...)' with a format "
                     f"string instead.")
             dtype._set_fn(self, v)
-            if length is not None and dtype.bitlength is not None and len(self) != dtype.bitlength:
+            if dtype.bitlength is not None and len(self) != dtype.bitlength:
                 # Some setters take a length and use it, and some take one and ignore
                 # it, which their signatures don't distinguish. Checking the result
                 # catches the second kind rather than dropping the length silently.
+                # The length can come from the keyword itself too, as in hex8='ff'.
+                if length is None:
+                    raise ValueError(
+                        f"The '{k}' initialiser needs a value that is {dtype.bitlength} bits long, "
+                        f"but the value given is {len(self)} bits long.")
                 raise ValueError(
                     f"A length of {length} was supplied for the '{dtype.name}' initialiser, "
                     f"but the value given is {len(self)} bits long.")
@@ -831,6 +836,9 @@ class Bits:
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with a 'ube' initialiser.")
+        if length % 8:
+            # Only reachable when the length is the bitstring's own, as the dtype checks any other.
+            raise ValueError(f"Big-endian integers must be whole-byte. Length = {length} bits.")
         self._bitstore = helpers.int2bitstore(uintbe, length, False)
 
     def _getuintbe(self) -> int:
@@ -847,6 +855,8 @@ class Bits:
         length = self._maybe_use_existing_length(length)
         if length is None or length == 0:
             raise ValueError("A non-zero length must be specified with an 'ibe' initialiser.")
+        if length % 8:
+            raise ValueError(f"Big-endian integers must be whole-byte. Length = {length} bits.")
         self._bitstore = helpers.int2bitstore(intbe, length, True)
 
     def _getintbe(self) -> int:
@@ -1142,6 +1152,8 @@ class Bits:
         return None
 
     def _setpad(self, value: None, length: int) -> None:
+        if length is None:
+            raise ValueError("A length must be specified with a 'pad' token, for example 'pad8'.")
         self._bitstore = ConstBitStore.from_zeros(length)
 
     def _setbin(self, binstring: str, length: None = None) -> None:
@@ -1769,7 +1781,7 @@ class Bits:
     def _bits_per_char(fmt: str):
         """How many bits are represented by each character of a given format."""
         if fmt not in ['bin', 'oct', 'hex', 'bytes']:
-            raise ValueError
+            raise ValueError(f"The '{fmt}' format can't be used in pp() without a length to group by.")
         return 24 // dtype_register[fmt].bitlength2chars_fn(24)
 
     def _pp(self, dtype1: Dtype, dtype2: Dtype | None, bits_per_group: int, width: int, sep: str, format_sep: str,
@@ -1777,6 +1789,8 @@ class Bits:
         """Internal pretty print method."""
         name1 = dtype1.name
         name2 = dtype2.name if dtype2 is not None else None
+        if 'pad' in (name1, name2):
+            raise ValueError("Can't use 'pad' in pp() as it has no value to show.")
         if dtype1.variable_length:
             raise ValueError(f"Can't use Dtype '{dtype1}' in pp() as it has a variable length.")
         if dtype2 is not None and dtype2.variable_length:

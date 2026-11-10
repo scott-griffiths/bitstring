@@ -1135,3 +1135,172 @@ def test_unpack_and_read_list_reject_a_keyword_length_that_isnt_an_integer(n) ->
     with pytest.raises(TypeError):
         _ = r.read_list("u:n", n=n)
     assert r.pos == 0
+
+
+# A length that is part of an initialiser keyword, as in hex8='f', was only checked by
+# the setters that use a length. The string setters ignore it, so the wrong number of
+# bits came back without complaint.
+
+@pytest.mark.parametrize("cls", [bitstring.Bits, bitstring.BitArray])
+@pytest.mark.parametrize("kwargs", [{"hex8": "f"}, {"hex8": "abc"}, {"bin4": "1"}, {"oct6": "7"},
+                                    {"bytes2": b"abc"}, {"bytes4": b""}])
+def test_a_length_in_an_initialiser_keyword_is_enforced(cls, kwargs: dict) -> None:
+    with pytest.raises(ValueError, match="bits long"):
+        _ = cls(**kwargs)
+
+
+def test_a_length_in_an_initialiser_keyword_still_works_when_it_matches() -> None:
+    assert bitstring.Bits(hex8="ff") == "0xff"
+    assert bitstring.Bits(bin4="1010") == "0xa"
+    assert bitstring.Bits(bytes2=b"ab") == "0x6162"
+    assert bitstring.Bits(u12=105) == "u12=105"
+
+
+# The token parser removed a literal's prefix and the core then removed a second one,
+# so a doubled prefix got through in a string even though the keywords rejected it.
+
+@pytest.mark.parametrize("s", ["0x0x55", "0b0b11", "0o0o7", "0X0xff", "u8=1, 0b0b11", "0xff, 0x0xff"])
+def test_a_doubled_literal_prefix_is_rejected_in_a_string(s: str) -> None:
+    for cls in (bitstring.Bits, bitstring.BitArray):
+        with pytest.raises(ValueError, match="prefix can only come at the start"):
+            _ = cls(s)
+    with pytest.raises(ValueError, match="prefix can only come at the start"):
+        _ = bitstring.pack(s)
+
+
+def test_literals_in_a_token_string_are_still_accepted() -> None:
+    assert bitstring.Bits("u8=1, 0b11") == "0b0000000111"
+    assert bitstring.Bits("0XfF, u4=1") == "0xff1"
+    assert bitstring.Bits("0x0b1, u4=1") == "0x0b11"  # '0b1' is three valid hex digits.
+    assert bitstring.pack("0o7, u8", 1) == "0b11100000001"
+
+
+# Integer Array arithmetic that produced an infinity or a nan let int()'s own errors out,
+# an OverflowError for one and an unexplained ValueError for the other.
+
+@pytest.mark.parametrize("op, value", [(operator.mul, float("inf")), (operator.add, float("nan")),
+                                       (operator.truediv, 1e-320), (operator.sub, float("-inf"))])
+def test_integer_array_arithmetic_giving_inf_or_nan_raises_the_usual_error(op, value) -> None:
+    a = bitstring.Array("u8", [1, 2])
+    with pytest.raises(ValueError, match="Applying operator .* caused 2 errors"):
+        _ = op(a, value)
+    assert a.to_list() == [1, 2]
+
+
+def test_array_arithmetic_with_an_int_too_big_for_a_float_raises_the_usual_error() -> None:
+    with pytest.raises(ValueError, match="Applying operator 'mul' to Array caused 1 errors"):
+        _ = bitstring.Array("f32", [1.0]) * 10 ** 400
+    with pytest.raises(ValueError, match="Applying operator 'mul' between Arrays caused 1 errors"):
+        _ = bitstring.Array("f64", [1.0]) * bitstring.Array("u2000", [10 ** 400])
+
+
+# Assigning to a big-endian property used the bitstring's own length without checking
+# it was a whole number of bytes, leaving a value that the same property couldn't read.
+
+@pytest.mark.parametrize("name", ["ube", "ibe", "uintbe", "intbe", "ule", "ile"])
+def test_byte_order_properties_cant_be_set_on_a_partial_byte_length(name: str) -> None:
+    a = bitstring.BitArray("0x000")
+    with pytest.raises(ValueError):
+        setattr(a, name, 1)
+    assert a == "0x000"
+    b = bitstring.BitArray("0x0000")
+    setattr(b, name, 1)
+    assert getattr(b, name) == 1
+
+
+# 'pad' has no value, so pp() printed None for each group, and divided by zero when
+# there was no separator either.
+
+@pytest.mark.parametrize("fmt", ["pad8", "pad8, hex8", "hex, pad"])
+@pytest.mark.parametrize("sep", [" ", ""])
+def test_pp_rejects_pad(fmt: str, sep: str) -> None:
+    import io
+    for x in (bitstring.Bits("0xffff"), bitstring.Array("u8", [1, 2])):
+        s = io.StringIO()
+        with pytest.raises(ValueError, match="pad"):
+            x.pp(fmt, sep=sep, stream=s)
+        assert s.getvalue() == ""
+
+
+def test_pp_of_bits_with_no_grouping_has_an_error_message() -> None:
+    import io
+    with pytest.raises(ValueError, match="'bits' format can't be used in pp"):
+        bitstring.Bits("0xffff").pp("bits0", stream=io.StringIO())
+
+
+@pytest.mark.parametrize("key", ["x", 1.5, None, (0, 1)])
+def test_bitarray_setitem_with_a_bad_key_type_raises_type_error(key) -> None:
+    a = bitstring.BitArray("0xff00")
+    with pytest.raises(TypeError, match="Index must be an integer or a slice"):
+        a[key] = 1
+    assert a == "0xff00"
+
+
+def test_pad_without_a_length_raises_value_error() -> None:
+    for f in (lambda: bitstring.Bits("pad"), lambda: bitstring.pack("pad"), lambda: bitstring.pack("u8, pad", 1),
+              lambda: bitstring.Dtype("pad").pack(None)):
+        with pytest.raises(ValueError, match="length must be specified with a 'pad'"):
+            _ = f()
+    assert bitstring.Bits("pad8") == "0x00"
+
+
+# bytes has a split() method, so it got past the check for a str in the hex, oct and bin
+# setters: empty bytes made an empty bitstring and anything else a confusing TypeError.
+
+@pytest.mark.parametrize("name", ["hex", "bin", "oct"])
+@pytest.mark.parametrize("value", [b"", b"11", bytearray(b"11")])
+def test_string_initialisers_reject_bytes(name: str, value) -> None:
+    with pytest.raises(ValueError, match="Expected str object"):
+        _ = bitstring.Bits(**{name: value})
+    with pytest.raises(ValueError, match="Expected str object"):
+        _ = bitstring.pack(name + "12", value)
+
+
+@pytest.mark.parametrize("token", [None, 8, 8.0, b"u8", ["u8"]])
+def test_dtype_from_something_that_isnt_a_str_raises_type_error(token) -> None:
+    with pytest.raises(TypeError, match="A Dtype is made from a str or another Dtype"):
+        _ = bitstring.Dtype(token)
+    with pytest.raises(TypeError, match="A Dtype is made from a str or another Dtype"):
+        _ = bitstring.Dtype(token, 8)
+
+
+# Text written straight up against a bracket group was joined onto the group's first or
+# last token, so '2*(u8)3' was read as 'u8, u83'.
+
+@pytest.mark.parametrize("fmt", ["2*(u8)3", "2*(u8)u8", "(u8)8", "u(8)", "u8(u8)", "2*(u8)(u8)", "2*(u8)2*(u8)"])
+def test_text_touching_a_bracket_group_is_rejected(fmt: str) -> None:
+    with pytest.raises(ValueError, match="parenthesis"):
+        _ = bitstring.pack(fmt, 1, 2)
+    with pytest.raises(ValueError, match="parenthesis"):
+        _ = bitstring.Bits("0x" + "00" * 20).unpack(fmt)
+
+
+def test_bracket_groups_separated_by_commas_still_work() -> None:
+    assert bitstring.pack("2*(u8), (u8, 2*(u4)), u8", 1, 2, 3, 4, 5, 6) == "0x0102034506"
+    assert bitstring.pack("((u8)), 2*((u4),(u4))", 1, 2, 3, 4, 5) == "0x012345"
+
+
+# The in-place arithmetic operators replace the data with newly packed items, which
+# dropped any trailing bits. The bitwise in-place operators have always kept them.
+
+@pytest.mark.parametrize("op, value, expected", [
+    (operator.iadd, 1, [2, 3]), (operator.isub, 1, [0, 1]), (operator.imul, 2, [2, 4]),
+    (operator.ifloordiv, 2, [0, 1]), (operator.itruediv, 2, [0, 1]), (operator.imod, 2, [1, 0]),
+    (operator.ilshift, 1, [2, 4]), (operator.irshift, 1, [0, 1]),
+    (operator.iadd, bitstring.Array("u8", [10, 20]), [11, 22]),
+    (operator.imul, bitstring.Array("u8", [10, 20]), [10, 40])])
+def test_inplace_array_arithmetic_keeps_trailing_bits(op, value, expected) -> None:
+    a = bitstring.Array("u8", [1, 2], trailing_bits="0b101")
+    b = op(a, value)
+    assert b is a
+    assert a.to_list() == expected
+    assert a.trailing_bits == "0b101"
+    assert len(a.data) == 19
+
+
+def test_failed_inplace_array_arithmetic_leaves_the_array_and_its_trailing_bits_alone() -> None:
+    a = bitstring.Array("u8", [1, 200], trailing_bits="0b101")
+    with pytest.raises(ValueError):
+        a += 100
+    assert a.to_list() == [1, 200]
+    assert a.trailing_bits == "0b101"

@@ -333,8 +333,10 @@ class BitArray(Bits):
     def __setitem__(self, key: slice | int, value: BitsType) -> None:
         if isinstance(key, numbers.Integral):
             self._setitem_int(int(key), value)
-        else:
+        elif isinstance(key, slice):
             self._setitem_slice(key, value)
+        else:
+            raise TypeError("Index must be an integer or a slice.")
 
     def __delitem__(self, key: slice | int) -> None:
         """Delete item or range.

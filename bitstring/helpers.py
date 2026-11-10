@@ -17,8 +17,7 @@ def validated_count(value: Any, description: str) -> int:
 
 def tidy_input_string(s: str) -> str:
     """Return string made lowercase and with all whitespace and underscores removed."""
-    try:
-        t = s.split()
-    except (AttributeError, TypeError):
+    # An explicit check, as bytes has a split() too and so got part of the way through.
+    if not isinstance(s, str):
         raise ValueError(f"Expected str object but received a {type(s)} with value {s}.")
-    return ''.join(t).lower().replace('_', '')
+    return ''.join(s.split()).lower().replace('_', '')

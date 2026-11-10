@@ -61,6 +61,8 @@ class Dtype:
                 if len(_token_cache) < TOKEN_CACHE_SIZE:
                     _token_cache[key] = x
             return x
+        if not isinstance(token, str):
+            raise TypeError(f"A Dtype is made from a str or another Dtype, but received a {type(token).__name__}.")
         if length is None:
             return cls._new_from_token(token)
         return dtype_register.get_dtype(token, length)
