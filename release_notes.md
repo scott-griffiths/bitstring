@@ -55,6 +55,10 @@ This is a bug fix release, with several minor edge cases fixed.
 * A format string with text directly against a bracket group, such as `'2*(u8)3'`, now raises
   a `ValueError`. The text was being joined on to the nearest token, so that example was read
   as `'u8, u83'`.
+* Fixed `BitArray.byteswap()` rejecting valid iterable byte-size patterns such as
+  NumPy integer arrays.
+* Fixed `Array.from_file(..., n=...)` reporting premature EOF after a short read
+  from a binary stream that still has more data.
 
 #### Performance
 

@@ -775,7 +775,30 @@ except ImportError:
     numpy_installed = False
 
 
+@pytest.mark.parametrize('sizes', [[], [2, 1], [2, 2], [0, 2], [0, 0]])
+@pytest.mark.parametrize('repeat', [False, True])
+def test_byteswap_iterable_does_not_need_scalar_equality(sizes, repeat):
+    class Sizes(list):
+        def __eq__(self, other):
+            raise AssertionError('Byte-size iterable is not a scalar format')
+
+    actual = BitArray('0x001122334455')
+    expected = actual.copy()
+    count = expected.byteswap(sizes, repeat=repeat)
+    assert actual.byteswap(Sizes(sizes), repeat=repeat) == count
+    assert actual == expected
+
+
 class TestNumpy:
+
+    @pytest.mark.skipif(not numpy_installed, reason="numpy not installed.")
+    @pytest.mark.parametrize('sizes', [[], [2, 1], [2, 2], [0, 2]])
+    def test_byteswap_integer_array_format(self, sizes):
+        actual = BitArray('0x001122334455')
+        expected = actual.copy()
+        count = expected.byteswap(sizes)
+        assert actual.byteswap(np.array(sizes, dtype=np.int64)) == count
+        assert actual == expected
 
     @pytest.mark.skipif(not numpy_installed, reason="numpy not installed.")
     def test_getting(self):
