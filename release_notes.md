@@ -7,6 +7,8 @@ This is a bug fix release, with several minor edge cases fixed.
 
 #### Fixes
 
+* Replacing or removing a dtype definition or alias now invalidates the cached dtype,
+  reader format and string initialiser results, so later operations use the current register.
 * Fixed extended slice assignment from an `Array` sharing the same data, when using the
   'bits' dtype, so values aren't overwritten before they are read. (#370, @KennyMcSimpson)
 * Fixed `Array.count()` raising `OverflowError` for integers too large to convert
