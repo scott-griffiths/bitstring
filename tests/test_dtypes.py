@@ -317,6 +317,79 @@ class TestNonPropertyDtypes:
 
 class TestChangingTheRegister:
 
+    @pytest.fixture
+    def cache_alias(self):
+        name = 'cache_alias'
+        yield name
+        if name in dtype_register.names:
+            del dtype_register[name]
+        for cls in (bs.Bits, bs.BitArray):
+            if name in cls.__dict__:
+                delattr(cls, name)
+
+    @pytest.mark.parametrize('read', [
+        lambda name: Dtype(name + '8').unpack(bs.Bits('0x10')),
+        lambda name: bs.Reader(bs.Bits('0x10')).read_value(name + '8'),
+        lambda name: bs.Bits('0x10').unpack(name + '8')[0],
+        lambda name: bs.Array.from_bytes(name + '8', b'\x10')[0],
+    ])
+    def test_replacing_cached_alias(self, cache_alias, read):
+        dtype_register.add_dtype_alias('u', cache_alias)
+        assert read(cache_alias) == 16
+        dtype_register.add_dtype_alias('hex', cache_alias)
+        assert read(cache_alias) == '10'
+
+    def test_replacing_alias_in_cached_string(self, cache_alias):
+        token = cache_alias + '8=10'
+        dtype_register.add_dtype_alias('u', cache_alias)
+        assert bs.Bits(token) == '0x0a'
+        dtype_register.add_dtype_alias('hex', cache_alias)
+        assert bs.Bits(token) == '0x10'
+
+    def test_replacing_alias_in_promoted_string(self, cache_alias):
+        token = cache_alias + '8=10'
+        dtype_register.add_dtype_alias('u', cache_alias)
+        assert bs.Bits('0x0a') == token
+        dtype_register.add_dtype_alias('hex', cache_alias)
+        assert bs.Bits('0x10') == token
+
+    def test_replacing_alias_in_pack_format(self, cache_alias):
+        dtype_register.add_dtype_alias('u', cache_alias)
+        assert bs.pack(cache_alias + '8', 255) == '0xff'
+        dtype_register.add_dtype_alias('i', cache_alias)
+        with pytest.raises(ValueError):
+            bs.pack(cache_alias + '8', 255)
+
+    def test_replacing_cached_definition(self, cache_alias):
+        dtype_register.add_dtype(DtypeDefinition(
+            cache_alias, bs.Bits._setuint, bs.Bits._getuint, is_property=False))
+        original = Dtype(cache_alias, 8)
+        reader = bs.Reader(bs.Bits('0xffff'))
+        assert reader.read_value(cache_alias + '8') == 255
+        dtype_register.add_dtype(DtypeDefinition(
+            cache_alias, bs.Bits._setint, bs.Bits._getint, is_property=False))
+        assert reader.read_value(cache_alias + '8') == -1
+        assert original.unpack(bs.Bits('0xff')) == 255
+
+    @pytest.mark.parametrize('read', [
+        lambda name: Dtype(name + '8'),
+        lambda name: bs.Reader(bs.Bits('0x10')).read_value(name + '8'),
+        lambda name: bs.Bits(name + '8=10'),
+    ])
+    def test_removing_cached_alias(self, cache_alias, read):
+        dtype_register.add_dtype_alias('u', cache_alias)
+        read(cache_alias)
+        del dtype_register[cache_alias]
+        with pytest.raises(ValueError):
+            read(cache_alias)
+
+    def test_removing_alias_in_promoted_string(self, cache_alias):
+        token = cache_alias + '8=10'
+        dtype_register.add_dtype_alias('u', cache_alias)
+        assert bs.Bits('0x0a') == token
+        del dtype_register[cache_alias]
+        assert bs.Bits('0x0a') != token
+
     def test_retrieving_meta_dtype(self):
         r = dtype_register
         u = r['uint']

@@ -369,10 +369,23 @@ class Register:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    @staticmethod
+    def _clear_caches() -> None:
+        # Each of these caches can retain a dtype definition or bits packed with it.
+        # Invalidate them together when names are replaced or removed.
+        _token_cache.clear()
+        Dtype._new_from_token.cache_clear()
+        Dtype._create.cache_clear()
+        bitstring.reader._read_fmt_cache.clear()
+        bitstring.bitstore_helpers.str_to_bitstore.cache_clear()
+        bitstring.bits._promoted_str_cache.clear()
+        bitstring.bits._prepared_fmt.cache_clear()
+        bitstring.methods._prepared_pack_fmt.cache_clear()
+
     @classmethod
     def add_dtype(cls, definition: DtypeDefinition):
         cls.names[definition.name] = definition
-        _token_cache.clear()
+        cls._clear_caches()
         if not definition.is_property:
             return
         if definition.get_fn is not None:
@@ -383,7 +396,7 @@ class Register:
     @classmethod
     def add_dtype_alias(cls, name: str, alias: str):
         cls.names[alias] = cls.names[name]
-        _token_cache.clear()
+        cls._clear_caches()
         definition = cls.names[alias]
         if not definition.is_property:
             return
@@ -408,7 +421,7 @@ class Register:
     @classmethod
     def __delitem__(cls, name: str) -> None:
         del cls.names[name]
-        _token_cache.clear()
+        cls._clear_caches()
 
     def __repr__(self) -> str:
         s = [f"{'key':<12}:{'name':^12}{'signed':^8}{'set_fn_needs_length':^23}{'allowed_lengths':^16}{'multiplier':^12}{'return_type':<13}"]
